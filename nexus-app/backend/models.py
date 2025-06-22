@@ -11,6 +11,8 @@ from abc import ABC, abstractmethod
 SECRET_KEY = "3faaec484d66da6379b4dee511bac8d4"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+DEVELOPMENT_MODE = True
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 Base = declarative_base()
@@ -177,10 +179,13 @@ class ABNVerificationStrategy(VerificationStrategy):
         abn = account_data.get("abn")
         # checkout https://abr.business.gov.au/Help/AbnFormat to validate abn format
         # better client side
-        return True
+        if DEVELOPMENT_MODE:
+            return True
 
 class IdentityVerificationStrategy(VerificationStrategy):
     def verify(self, account_data):
         #TODO: integrate DigiID verification later
         name = account_data.get("name")
-        return True
+        
+        if DEVELOPMENT_MODE:
+            return True
