@@ -51,7 +51,7 @@ async def register(request: Request, db: Session = Depends(get_db)):
     account_manager = AccountManager(db)
     data = await request.json()
 
-    logging.warning(f"🟢 Incoming register request: {data}")  # 👈 DEBUG LOG
+    logging.warning(f"Incoming register request: {data}")  # 👈 DEBUG LOG
 
     account_type = data.get("account_type")
 
@@ -61,17 +61,17 @@ async def register(request: Request, db: Session = Depends(get_db)):
         elif account_type == 'SERVICEPROVIDER':
             user = ServiceProviderRegisterModel(**data)
         else:
-            logging.error("❌ Invalid account type")
+            logging.error("Invalid account type")
             raise HTTPException(status_code=400, detail="Invalid account type")
 
-        logging.info(f"✅ Validated user model for type: {account_type}")
+        logging.info(f"Validated user model for type: {account_type}")
         account_manager.register_user(account_type, user.model_dump())
 
         return {"message": f"{account_type} account created successfully"}
     
     except ValidationError as e:
-        logging.error(f"❌ Validation error: {e.errors()}")
+        logging.error(f"Validation error: {e.errors()}")
         return JSONResponse(status_code=422, content={"detail": e.errors()})
     except Exception as e:
-        logging.exception("❌ Unexpected error")
+        logging.exception("Unexpected error")
         return JSONResponse(status_code=500, content={"detail": str(e)})
