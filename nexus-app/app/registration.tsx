@@ -1,6 +1,6 @@
 // RegisterScreen.js
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { SafeAreaView, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity, FlatList } from 'react-native';
 import {useRouter} from 'expo-router';
 import DropDownPicker from 'react-native-dropdown-picker';
 
@@ -84,7 +84,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text>Username</Text>
       <TextInput style={styles.input} value={username} onChangeText={setUsername} autoCapitalize="none" />
       <Text>Email</Text>
@@ -128,7 +128,7 @@ export default function RegisterScreen() {
       )}
       <Button title="Register" onPress={handleRegister} />
       <Button title="Back to Login" onPress={() => router.replace('/login')} />
-    </View>
+    </SafeAreaView>
   );
 }
 

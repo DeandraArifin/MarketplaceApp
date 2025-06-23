@@ -1,7 +1,7 @@
 import { Slot, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { View, ActivityIndicator } from 'react-native';
+import { SafeAreaView, ActivityIndicator } from 'react-native';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -31,9 +31,9 @@ export default function RootLayout() {
 
   if (isLoading) {
     return (
-      <View style={{ flex:1, justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView style={{ flex:1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
-      </View>
+      </SafeAreaView>
     );
   }
 
