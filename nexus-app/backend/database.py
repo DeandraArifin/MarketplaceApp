@@ -1,10 +1,13 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
+import pymysql
 
-engine = create_engine(
-    "mysql+pymysql://root:#Sh315c00L@localhost:3306/log_app"
-)
+DATABASE_URL = "mysql+pymysql://root:#Sh315c00L@localhost:3306/nexus_app"
+
+engine = create_engine(DATABASE_URL, echo=True)
+
+Base.metadata.create_all(engine)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

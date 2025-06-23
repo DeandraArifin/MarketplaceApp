@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 SECRET_KEY = "3faaec484d66da6379b4dee511bac8d4"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 DEVELOPMENT_MODE = True
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -40,30 +40,51 @@ class Account(Base):
     username = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     email = Column(String(255), nullable = False, unique=True)
+    account_type = Column(Enum(AccountType), nullable=False)
 
-    def __init__(self, username, hashed_password, email):
+    __mapper_args__ = {
+        'polymorphic_on' : account_type
+    }
+
+    def __init__(self, username, hashed_password, email, account_type):
         self.username = username #unique
         self.hashed_password = hashed_password
         self.email = email #unique
+        self.account_type = account_type
 
     
 class BusinessAccount(Account):
     __tablename__ = 'business_accounts'
 
-    def __init__(self, username, hashed_password, email, ABN, address):
-        self.username = username
-        self.hashed_password = hashed_password
-        self.email = email
-        self.ABN = ABN
+    id = Column(Integer, ForeignKey('accounts.id'), primary_key=True)
+    abn = Column(String(11), unique=True, nullable=False)
+    address = Column(String(255), nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity' : AccountType.BUSINESS
+    }
+
+    def __init__(self, username, hashed_password, email, abn, address):
+        super().__init__(username, hashed_password, email, AccountType.BUSINESS )
+        self.abn = abn
         self.address = address
+
 
 class ServiceProviderAccount(Account):
     __tablename__ = 'service_provider_accounts'
 
+    id = Column(Integer, ForeignKey('accounts.id'), primary_key=True)
+    first_name = Column(String(100), nullable = False)
+    last_name = Column(String(100), nullable=False)
+    address = Column(String(255), nullable=False)
+    trade = Column(Enum(TradeType), nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity' : AccountType.SERVICEPROVIDER
+    }
+
     def __init__(self, username, hashed_password, email, first_name, last_name, address, trade):
-        self.username = username
-        self.hashed_password = hashed_password
-        self.email = email
+        super().__init__(username, hashed_password, email, AccountType.SERVICEPROVIDER)
         self.first_name = first_name
         self.last_name = last_name
         self.address = address
@@ -99,7 +120,18 @@ class AccountManager:
 
         if not user or not self.verify_password(password, user.hashed_password):
             return None
+        
         return user
+        
+    def create_user_token(self, user):
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        token = self.create_access_token(
+            data={"sub" : user.username,
+                  "role": user.account_type.value},
+            expires_delta = access_token_expires
+        )
+        return token
     
     def create_access_token(data: dict, expires_delta: timedelta=None):
         to_encode = data.copy()
@@ -157,16 +189,6 @@ class AccountManager:
         else:
             return ("Identity verification failed")
 
-#just an idea 
-class AccountFactory:
-    @staticmethod
-    def create_account(account_type, data):
-        if account_type == AccountType.BUSINESS:
-            return BusinessAccount(data)
-        
-        elif account_type == AccountType.SERVICEPROVIDER:
-            return ServiceProviderAccount(data)
-
 
 class VerificationStrategy(ABC):
     @abstractmethod
@@ -186,6 +208,6 @@ class IdentityVerificationStrategy(VerificationStrategy):
     def verify(self, account_data):
         #TODO: integrate DigiID verification later
         name = account_data.get("name")
-        
+
         if DEVELOPMENT_MODE:
             return True
