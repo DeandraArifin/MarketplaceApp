@@ -1,5 +1,5 @@
 #for sql alchemy models
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum as PyEnum
 from sqlalchemy import Enum, Float, Column, Integer, String, create_engine, ForeignKey, null, UniqueConstraint, DateTime, Boolean
 from sqlalchemy.orm import relationship, Session
@@ -7,6 +7,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from passlib.context import CryptContext
 from jose import jwt
 from abc import ABC, abstractmethod
+from fastapi import HTTPException
+
 
 SECRET_KEY = "3faaec484d66da6379b4dee511bac8d4"
 ALGORITHM = "HS256"
@@ -133,13 +135,13 @@ class AccountManager:
         )
         return token
     
-    def create_access_token(data: dict, expires_delta: timedelta=None):
+    def create_access_token(self, data: dict, expires_delta: timedelta=None):
         to_encode = data.copy()
 
         if expires_delta:
-            expire = datetime.fromtimestamp() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.fromtimestamp() + timedelta(minutes=15)
+            expire = datetime.now(timezzone.utc) + timedelta(minutes=15)
 
         to_encode.update({"exp" : expire}) #add expiry to payload
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -149,27 +151,36 @@ class AccountManager:
     #edit because verification should occur before account creation
     def register_user(self, account_type, user_data):
 
-        if account_type == AccountType.BUSINESS:
+        try:
+            account_type_enum = AccountType(account_type)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Unrecognised account type, enum conversion failed")
+        
+        if account_type_enum == AccountType.BUSINESS:
 
-            success = ABNVerificationStrategy(user_data)
+            strategy = ABNVerificationStrategy()
+            success = strategy.verify(user_data)
+            if not success:
+                raise HTTPException(status_code=400, detail="Failed to verify your ABN. Please check your details.")
 
-            if success:
-                account = BusinessAccount(
-                    username = user_data['username'],
-                    email=user_data['email'],
-                    hashed_password = pwd_context.hash(user_data['password']),
-                    abn = user_data['abn'],
-                    address = user_data['address']
-                )
-            else:
-                return ("Failed to verify your ABN. Please check your details.")
             
-        elif account_type == AccountType.SERVICEPROVIDER:
-
-            success = IdentityVerificationStrategy(user_data)
+            account = BusinessAccount(
+                username = user_data['username'],
+                email=user_data['email'],
+                hashed_password = pwd_context.hash(user_data['password']),
+                abn = user_data['abn'],
+                address = user_data['address']
+            )
             
-            if success:
-                account = ServiceProviderAccount(
+        elif account_type_enum == AccountType.SERVICEPROVIDER:
+
+            strategy = IdentityVerificationStrategy()
+            success = strategy.verify(user_data)
+
+            if not success:
+                raise HTTPException(status_code=400, detail="Failed to verify your identity. Please check your credentials")
+
+            account = ServiceProviderAccount(
                     username = user_data['username'],
                     email = user_data['email'],
                     hashed_password = pwd_context.hash(user_data['password']),
@@ -178,16 +189,13 @@ class AccountManager:
                     address = user_data['address'],
                     trade = user_data['trade'] #maybe fix this to use the enum
                 )
-            else:
-                return ("Failed to verify your identity. Please check your details.")
+                
         else:
-            return ("Unrecognised account type")
+            raise HTTPException(status_code=400, detail="Unrecognised account type")
         
-        if account.verify_identity():
-            self.add_account(account)
-            return ("Registration successful")
-        else:
-            return ("Identity verification failed")
+        
+        self.add_account(account)
+        return {"message": "Registration successful"}
 
 
 class VerificationStrategy(ABC):
