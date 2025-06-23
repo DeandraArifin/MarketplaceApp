@@ -1,9 +1,7 @@
-// RegisterScreen.js
 import React, { useState } from 'react';
-import { SafeAreaView, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, TextInput, Button, Text, StyleSheet, Alert, Platform } from 'react-native';
 import {useRouter} from 'expo-router';
 import DropDownPicker from 'react-native-dropdown-picker';
-
 
 const TradeType = {
   BARISTA: 'BARISTA',
@@ -17,7 +15,7 @@ const TradeType = {
   HVACTECH: 'HVACTECH',
 };
 
-const tradeOptions = Object.values(TradeType)
+const tradeOptions = Object.values(TradeType);
 
 export default function RegisterScreen() {
   const [open, setOpen] = useState(false);
@@ -28,37 +26,34 @@ export default function RegisterScreen() {
     }))
   );
 
-
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [accountType, setAccountType] = useState(''); // or 'SERVICEPROVIDER'
+  const [accountType, setAccountType] = useState('');
   const [abn, setAbn] = useState('');
   const [address, setAddress] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-
   const [trade, setTrade] = useState('');
 
   const router = useRouter();
 
   const handleRegister = async () => {
-
     const requestBody = {
-    username,
-    email,
-    password,
-    account_type: accountType
+      username,
+      email,
+      password,
+      account_type: accountType
     } as any;
 
     if (accountType === 'BUSINESS') {
-        requestBody.abn = abn;
-        requestBody.address = address;
+      requestBody.abn = abn;
+      requestBody.address = address;
     } else if (accountType === 'SERVICEPROVIDER') {
-        requestBody.first_name = firstName;
-        requestBody.last_name = lastName;
-        requestBody.address = address;
-        requestBody.trade = trade;
+      requestBody.first_name = firstName;
+      requestBody.last_name = lastName;
+      requestBody.address = address;
+      requestBody.trade = trade;
     }
 
     console.log("Register request body:", requestBody); // DEBUG
@@ -84,28 +79,38 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text>Username</Text>
-      <TextInput style={styles.input} value={username} onChangeText={setUsername} autoCapitalize="none" />
-      <Text>Email</Text>
-      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <Text>Password</Text>
-      <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-      <Text>Account Type</Text>
-      <Button title="Business" onPress={() => setAccountType('BUSINESS')} />
-      <Button title="Service Provider" onPress={() => setAccountType('SERVICEPROVIDER')} />
-      <Text>Selected: {accountType}</Text>
-      {accountType === 'BUSINESS' && (
-        <>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0} // adjust if you have header/navbar
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text>Username</Text>
+        <TextInput style={styles.input} value={username} onChangeText={setUsername} autoCapitalize="none" />
+        <Text>Email</Text>
+        <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        <Text>Password</Text>
+        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
+        
+        <Text>Account Type</Text>
+        <Button title="Business" onPress={() => setAccountType('BUSINESS')} />
+        <Button title="Service Provider" onPress={() => setAccountType('SERVICEPROVIDER')} />
+        <Text>Selected: {accountType}</Text>
+
+        {accountType === 'BUSINESS' && (
+          <>
             <Text>ABN</Text>
             <TextInput style={styles.input} value={abn} onChangeText={setAbn} keyboardType='numeric' maxLength={11} />
             <Text>Address</Text>
             <TextInput style={styles.input} value={address} onChangeText={setAddress}/>
-        </>
-      )}
+          </>
+        )}
 
-      {accountType === 'SERVICEPROVIDER' && (
-        <>
+        {accountType === 'SERVICEPROVIDER' && (
+          <>
             <Text>First Name</Text>
             <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} />
             <Text>Last Name</Text>
@@ -123,16 +128,17 @@ export default function RegisterScreen() {
               placeholder="Select a trade"
               style={{ marginBottom: open ? 180 : 10 }} // makes space for dropdown
             />
+          </>
+        )}
 
-        </>
-      )}
-      <Button title="Register" onPress={handleRegister} />
-      <Button title="Back to Login" onPress={() => router.replace('/login')} />
-    </SafeAreaView>
+        <Button title="Register" onPress={handleRegister} />
+        <Button title="Back to Login" onPress={() => router.replace('/login')} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, flex: 1, justifyContent: 'center' },
+  container: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 5 },
 });
