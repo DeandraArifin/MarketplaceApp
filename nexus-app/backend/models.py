@@ -106,8 +106,10 @@ class AccountManager:
             print("Username already exists. Please try a different one.")
             return False
         
-        #success
+        #add account to db
         self.session.add(account)
+
+        #commit db updates
         self.session.commit()
         return True
 
@@ -143,14 +145,13 @@ class AccountManager:
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.now(timezzone.utc) + timedelta(minutes=15)
+            expire = datetime.now(timezone.utc) + timedelta(minutes=15)
 
         to_encode.update({"exp" : expire}) #add expiry to payload
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
         return encoded_jwt
     
-    #edit because verification should occur before account creation
     def register_user(self, account_type, user_data):
 
         try:
@@ -158,14 +159,19 @@ class AccountManager:
         except ValueError:
             raise HTTPException(status_code=400, detail="Unrecognised account type, enum conversion failed")
         
-        if account_type_enum == AccountType.BUSINESS:
+        if self.username_exists(user_data['username']):
+            print("Username already exists. Please try a different one.")
+            return False
 
+        if account_type_enum == AccountType.BUSINESS:
+            #verify ABN
             strategy = ABNVerificationStrategy()
             success = strategy.verify(user_data)
             if not success:
                 raise HTTPException(status_code=400, detail="Failed to verify your ABN. Please check your details.")
+                return
 
-            
+            #create business account if ABN is verified
             account = BusinessAccount(
                 username = user_data['username'],
                 email=user_data['email'],
@@ -176,12 +182,15 @@ class AccountManager:
             
         elif account_type_enum == AccountType.SERVICEPROVIDER:
 
+            #verify identity
             strategy = IdentityVerificationStrategy()
             success = strategy.verify(user_data)
 
             if not success:
                 raise HTTPException(status_code=400, detail="Failed to verify your identity. Please check your credentials")
+                return
 
+            #create service provider account if identity is verified
             account = ServiceProviderAccount(
                     username = user_data['username'],
                     email = user_data['email'],
@@ -195,7 +204,7 @@ class AccountManager:
         else:
             raise HTTPException(status_code=400, detail="Unrecognised account type")
         
-        
+        #add account to db
         self.add_account(account)
         return {"message": "Registration successful"}
     
