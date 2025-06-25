@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import {useRouter} from 'expo-router';
 import {loginUser} from '../services/api'
+import { saveAuthData } from '@/services/auth';
 
 
 export default function LoginScreen() {
@@ -25,9 +26,8 @@ export default function LoginScreen() {
             Alert.alert('Login error', 'Invalid server response. Please try again.');
             return;
         }
-        await SecureStore.setItemAsync('access_token', data.access_token)
-        await SecureStore.setItemAsync('username', username)
-        await SecureStore.setItemAsync('role', data.role);
+
+        await saveAuthData(data.access_token, username, data.role);
 
         // Alert.alert('Login successful', `Token: ${data.access_token}`);
         router.replace('/home')

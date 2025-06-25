@@ -1,6 +1,7 @@
 // utils/validation.ts
 import { AccountType, ErrorFields } from '../types/types';
 
+//TODO: update to take data instead of specific parameters
 export const validateRegistrationForm = (
   username: string,
   email: string,

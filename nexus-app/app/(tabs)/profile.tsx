@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TextInput, StyleSheet, Button, Alert } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import {useRouter} from 'expo-router';
 import { getAccessToken, handleLogout } from '@/services/auth';
 import { getProfile } from '@/services/api';
+import { AccountType, TradeType, ErrorFields} from '@/types/types';
+import { validateRegistrationForm } from '@/utils/userformvalidation';
 
 export default function Profile() {
   const [username, setUsername] = useState('');
@@ -14,6 +15,9 @@ export default function Profile() {
   const [trade, setTrade] = useState('');
   const [abn, setAbn] = useState('');
   const router = useRouter();
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<ErrorFields>({});
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect (() => {
     const fetchProfile = async () => {
@@ -55,10 +59,19 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
+//   const handleSubmit = async () => {
+//     setSubmitted(true);
+//     const validationErrors = validateRegistrationForm(data);
+//     const formIsValid = Object.keys(validationErrors).length === 0;
+    
+//     setErrors(validationErrors);
+//     setIsFormValid(formIsValid); // still useful for UI
+//   }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.username}>Username: {username}!</Text>
-      <Text>Email: {email}</Text>
+      <Text style={styles.username}>Hi {username}!</Text>
+      <Text style={styles.header}>Email: {email}</Text>
       {trade !== '' && (
         <>
         <Text>First Name</Text>
@@ -88,4 +101,5 @@ const styles = StyleSheet.create({
   username: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
   role: { fontSize: 18, color: 'gray' },
   input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 5 },
+  header : { fontSize: 15, fontWeight: 'bold', marginBottom:8},
 });
