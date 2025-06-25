@@ -19,6 +19,7 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  phoneNum: string;
   account_type: AccountType;
   abn?: string;
   address?: string;
@@ -31,6 +32,7 @@ export type ErrorFields = {
   username?: string;
   email?: string;
   password?: string;
+  phoneNum?: string;
   accountType?: string;
   abn?: string;
   firstName?: string;

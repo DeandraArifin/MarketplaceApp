@@ -34,24 +34,30 @@ class TradeType(PyEnum):
     PLUMBER = 'PLUMBER'
     ELECTRICIAN = 'ELECTRICIAN'
     HVACTECH = 'HVACTECH'
-    
 
+class ListingType(PyEnum):
+    JOB = 'JOB'
+    PRODUCT = 'PRODUCT'
+    
+#TODO: add phone number to columns
 class Account(Base):
     __tablename__ = 'accounts'
     id = Column(Integer, autoincrement=True, primary_key = True)
     username = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     email = Column(String(255), nullable = False, unique=True)
+    phone_number = Column(String(10), nullable=False, unique=True)
     account_type = Column(Enum(AccountType), nullable=False)
 
     __mapper_args__ = {
         'polymorphic_on' : account_type
     }
 
-    def __init__(self, username, hashed_password, email, account_type):
+    def __init__(self, username, hashed_password, email, phone_number, account_type):
         self.username = username #unique
         self.hashed_password = hashed_password
         self.email = email #unique
+        self.phone_number = phone_number #unique
         self.account_type = account_type
 
     
@@ -66,8 +72,8 @@ class BusinessAccount(Account):
         'polymorphic_identity' : AccountType.BUSINESS
     }
 
-    def __init__(self, username, hashed_password, email, abn, address):
-        super().__init__(username, hashed_password, email, AccountType.BUSINESS )
+    def __init__(self, username, hashed_password, email, phone_number, abn, address):
+        super().__init__(username, hashed_password, email, phone_number, AccountType.BUSINESS )
         self.abn = abn
         self.address = address
 
@@ -85,8 +91,8 @@ class ServiceProviderAccount(Account):
         'polymorphic_identity' : AccountType.SERVICEPROVIDER
     }
 
-    def __init__(self, username, hashed_password, email, first_name, last_name, address, trade):
-        super().__init__(username, hashed_password, email, AccountType.SERVICEPROVIDER)
+    def __init__(self, username, hashed_password, email, phone_number, first_name, last_name, address, trade):
+        super().__init__(username, hashed_password, email, phone_number, AccountType.SERVICEPROVIDER)
         self.first_name = first_name
         self.last_name = last_name
         self.address = address
@@ -175,6 +181,7 @@ class AccountManager:
             account = BusinessAccount(
                 username = user_data['username'],
                 email=user_data['email'],
+                phone_number=user_data['phone_number'],
                 hashed_password = pwd_context.hash(user_data['password']),
                 abn = user_data['abn'],
                 address = user_data['address']
@@ -193,8 +200,9 @@ class AccountManager:
             #create service provider account if identity is verified
             account = ServiceProviderAccount(
                     username = user_data['username'],
-                    email = user_data['email'],
                     hashed_password = pwd_context.hash(user_data['password']),
+                    email = user_data['email'],
+                    phone_number = user_data['phone_number'],
                     first_name = user_data['first_name'],
                     last_name = user_data['last_name'],
                     address = user_data['address'],
@@ -214,6 +222,7 @@ class AccountManager:
             profile_data = {
                 "username": user.username,
                 "email": user.email,
+                "phone_number": user.phone_number,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "address": user.address,
@@ -224,6 +233,7 @@ class AccountManager:
             profile_data = {
                 "username": user.username,
                 "email": user.email,
+                "phone_number": user.phone_number,
                 "abn": user.abn,
                 "address": user.address
             }
@@ -258,11 +268,25 @@ class IdentityVerificationStrategy(VerificationStrategy):
         if DEVELOPMENT_MODE:
             return True
         
+
+class Application(Base):
+    __tablename__ = 'applications'
+
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
+    applicant_id = Column(Integer, ForeignKey('accounts.id'), nullable=False)
+    listing_id = Column(Integer, ForeignKey('job_listings.id'), nullable=False)
+
+    listing = relationship("JobListing", back_populates="applicants")
+
+    def __init__(self, applicant_id, listing_id):
+        self.applicant_id = applicant_id
+        self.listing_id = listing_id
+        
 #association table for listing tags and job listings (normalised)
 listing_tags = Table(
     'listing_tags',
     Base.metadata,
-    Column('listing_id', ForeignKey('service_listings.id'), primary_key=True),
+    Column('listing_id', ForeignKey('listings.id'), primary_key=True),
     Column('tag_id', ForeignKey('tags.id'), primary_key=True)
 )
 
@@ -271,31 +295,105 @@ class Tag(Base):
     __tablename__ = 'tags'
 
     id = Column(Integer, autoincrement=True, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String(100), unique=True, index=True, nullable=False)
 
-    listings = relationship("ServiceListing", secondary=listing_tags, back_populates="tags")
+    listings = relationship("Listing", secondary=listing_tags, back_populates="tags")
 
 class Listing(Base):
     __tablename__ = 'listings'
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    title = Column(String, nullable=False)
-    description = Column(String, nullable=False)
-    location = Column(String, nullable=False)
+    type = Column(Enum(ListingType), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=False)
     datetime_required = Column(DateTime, nullable=False)
-    created_by = Column(String, ForeignKey("accounts.id"), nullable=False)
+    created_by = Column(Integer, ForeignKey("accounts.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
     tags = relationship("Tag", secondary=listing_tags, back_populates="listings")
     
+    __mapper_args__ = {
+        'polymorphic_on' : type
+    }
+
+    def __init__(self, type, title, description, location, datetime_required, created_by, created_at, tags):
+        self.type = type
+        self.title = title
+        self.description = description
+        self.location = location
+        self.datetime_required = datetime_required
+        self.created_by = created_by
+        self.created_at = created_at
+        self.tags = tags
         
 class JobListing(Base):
     __tablename__ = 'job_listings'
 
-    id = Column(Integer, ForeignKey('listings.id'), nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    id = Column(Integer, ForeignKey('listings.id'), primary_key=True, nullable=False)
+    rate_per_h = Column(Float, nullable=False) #rate per hour
 
-    applicants = relationship("Application", back_populates="listing")
+    applicants = relationship("Application", back_populates="listing", cascade="all, delete-orphan")
+
+    __mapper_args__ = {
+        'polymorphic_identity' : ListingType.JOB
+    }
+
+    def __init__(self, type, title, description, location, datetime_required, created_by, created_at, tags, rate_per_h):
+        super().__init__(type, title, description, location, datetime_required, created_by, created_at, tags)
+        self.rate_per_h = rate_per_h
+
+    def can_apply(self, service_provider) -> bool:
+        #checks if the account is a service provider account and if their trade matches the requirements of the job
+        return any(tag in self.tags for tag in service_provider.trade) and isinstance(service_provider, ServiceProviderAccount)
+    
+    def add_applicant(self,applicant):
+
+        if not self.can_apply(applicant):
+            raise HTTPException(
+                status_code=403,
+                detail="Applicant does not meet trade requirements for this listing."
+            )
+        
+        # Check if already applied (optional safety check)
+        if any(app.user_id == applicant.id for app in self.applicants):
+            raise HTTPException(
+                status_code=409,
+                detail="Applicant has already applied for this listing."
+            )
+        
+        if applicant.account_type != AccountType.SERVICEPROVIDER:
+            raise HTTPException(status_code=403, detail="Only service providers can apply.")
+        
+        application = Application(user_id=applicant.id, listing_id=self.id)
+        self.applicants.append(application)
+
+class ProductListing(Base):
+    __tablename__ = 'product_listings'
+
+    id = Column(Integer, ForeignKey('listings.id'), primary_key=True, nullable=False)
+    price = Column(Float, nullable=False)
+    quantity = Column(Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity' : ListingType.PRODUCT
+    }
+
+class ListingManager():
+    def __init__(self, session: Session):
+        self.session = session
+
+    def add_listing(self, listing):
+
+        self.session.add(listing)
+        self.session.commit()
+
+    def create_job_listing(self, type, title, description, location, datetime_required, created_by, created_at, tags, rate_per_h):
+
+        job = JobListing(type, title, description, location, datetime_required, created_by, created_at, tags, rate_per_h)
+        self.add_listing(job)
+
+        return job
 
 
 

@@ -6,6 +6,7 @@ export const validateRegistrationForm = (
   username: string,
   email: string,
   password: string,
+  phoneNum: string,
   accountType: string,
   abn: string,
   address: string,
@@ -30,6 +31,9 @@ export const validateRegistrationForm = (
     errors.password =
       'Password must be at least 8 chars, with uppercase, lowercase, and a number.';
   }
+
+  if(!phoneNum) errors.phoneNum = 'Phone number is required.';
+  if (phoneNum.length != 10) errors.phoneNum = 'Phone number must be 10 digits long.'
 
   if (!accountType) {
     errors.accountType = 'Please choose an account type.';

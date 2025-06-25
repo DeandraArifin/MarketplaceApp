@@ -41,6 +41,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise credentials_exception
     return user
 
+def require_business_user(user = Depends(get_current_user)):
+    if user["role"] != "BUSINESS":
+        raise HTTPException(status_code=403, detail="Only business users can access this route.")
+    return user
+
+def require_service_provider(user = Depends(get_current_user)):
+    if user["role"] != "SERVICEPROVIDER":
+        raise HTTPException(status_code=403, detail="Only service providers can access this route.")
+    return user
+
+
 @app.get("/")
 def root():
     return {
@@ -101,7 +112,7 @@ async def register(request: Request, db: Session = Depends(get_db)):
     
 @app.get("/profile")
 async def profile(current_user = Depends(get_current_user), db: Session = Depends(get_db)):
-    
+
     account_manager = AccountManager(db)
     profile_data = account_manager.get_user_profile(current_user)
 

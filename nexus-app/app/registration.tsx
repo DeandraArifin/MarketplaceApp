@@ -29,6 +29,7 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNum, setPhoneNum] = useState('');
   const [accountType, setAccountType] = useState('');
   const [abn, setAbn] = useState('');
   const [address, setAddress] = useState('');
@@ -44,14 +45,14 @@ export default function RegisterScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    const errs = validateRegistrationForm(username, email, password, accountType, abn, address, firstName, lastName, trade);
+    const errs = validateRegistrationForm(username, email, password, phoneNum, accountType, abn, address, firstName, lastName, trade);
     setErrors(errs);
     setIsFormValid(Object.keys(errs).length === 0);
-  }, [username, email, password, accountType, abn, address, firstName, lastName, trade]);
+  }, [username, email, password, phoneNum, accountType, abn, address, firstName, lastName, trade]);
 
   const handleRegister = async () => {
     setSubmitted(true);
-    const validationErrors = validateRegistrationForm(username, email, password, accountType, abn, address, firstName, lastName, trade);
+    const validationErrors = validateRegistrationForm(username, email, password, phoneNum, accountType, abn, address, firstName, lastName, trade);
     const formIsValid = Object.keys(validationErrors).length === 0;
 
     setErrors(validationErrors);
@@ -66,6 +67,7 @@ export default function RegisterScreen() {
       username,
       email,
       password,
+      phone_number: phoneNum,
       account_type: accountType as AccountType,
       ...(accountType === 'BUSINESS' && { abn, address }),
       ...(accountType === 'SERVICEPROVIDER' && {
@@ -106,6 +108,10 @@ export default function RegisterScreen() {
         <Text>Email</Text>
         <TextInput style={[styles.input, submitted && errors.email && styles.inputError]} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
         {submitted && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+
+        <Text>Phone Number</Text>
+        <TextInput style={[styles.input, submitted && errors.phoneNum && styles.inputError]} value={phoneNum} onChangeText={setPhoneNum}></TextInput>
+        {submitted && errors.phoneNum && <Text style={styles.error}>{errors.phoneNum}</Text>}
 
         <Text>Password</Text>
         <TextInput style={[styles.input, submitted && errors.password && styles.inputError]} value={password} onChangeText={setPassword} secureTextEntry />

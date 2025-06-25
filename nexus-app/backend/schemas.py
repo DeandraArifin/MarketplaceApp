@@ -5,6 +5,7 @@ class BaseRegisterModel(BaseModel):
     username: str
     email: EmailStr
     password: str
+    phone_number: str
     account_type: AccountType
 
 class BusinessRegistrationModel(BaseRegisterModel):
