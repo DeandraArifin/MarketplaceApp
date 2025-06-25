@@ -1,7 +1,7 @@
 #for sql alchemy models
 from datetime import datetime, timedelta, timezone
 from enum import Enum as PyEnum
-from sqlalchemy import Enum, Float, Column, Integer, String, create_engine, ForeignKey, null, UniqueConstraint, DateTime, Boolean
+from sqlalchemy import Table, Enum, Float, Column, Integer, String, create_engine, ForeignKey, null, UniqueConstraint, DateTime, Boolean
 from sqlalchemy.orm import relationship, Session, with_polymorphic
 from sqlalchemy.ext.declarative import declarative_base
 from passlib.context import CryptContext
@@ -38,7 +38,7 @@ class TradeType(PyEnum):
 
 class Account(Base):
     __tablename__ = 'accounts'
-    id = Column(Integer, primary_key = True)
+    id = Column(Integer, autoincrement=True, primary_key = True)
     username = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     email = Column(String(255), nullable = False, unique=True)
@@ -257,3 +257,45 @@ class IdentityVerificationStrategy(VerificationStrategy):
 
         if DEVELOPMENT_MODE:
             return True
+        
+#association table for listing tags and job listings (normalised)
+listing_tags = Table(
+    'listing_tags',
+    Base.metadata,
+    Column('listing_id', ForeignKey('service_listings.id'), primary_key=True),
+    Column('tag_id', ForeignKey('tags.id'), primary_key=True)
+)
+
+#TODO: add polymorphic relationships and class functionalities        
+class Tag(Base):
+    __tablename__ = 'tags'
+
+    id = Column(Integer, autoincrement=True, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+
+    listings = relationship("ServiceListing", secondary=listing_tags, back_populates="tags")
+
+class Listing(Base):
+    __tablename__ = 'listings'
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    location = Column(String, nullable=False)
+    datetime_required = Column(DateTime, nullable=False)
+    created_by = Column(String, ForeignKey("accounts.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+
+    tags = relationship("Tag", secondary=listing_tags, back_populates="listings")
+    
+        
+class JobListing(Base):
+    __tablename__ = 'job_listings'
+
+    id = Column(Integer, ForeignKey('listings.id'), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+
+    applicants = relationship("Application", back_populates="listing")
+
+
+
