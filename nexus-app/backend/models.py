@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta, timezone
 from enum import Enum as PyEnum
 from sqlalchemy import Enum, Float, Column, Integer, String, create_engine, ForeignKey, null, UniqueConstraint, DateTime, Boolean
-from sqlalchemy.orm import relationship, Session
+from sqlalchemy.orm import relationship, Session, with_polymorphic
 from sqlalchemy.ext.declarative import declarative_base
 from passlib.context import CryptContext
 from jose import jwt
@@ -112,7 +112,9 @@ class AccountManager:
         return True
 
     def get_user(self, username):
-        return self.session.query(Account).filter_by(username=username).first()
+        polymorphic_acc = with_polymorphic(Account, '*')
+
+        return self.session.query(Account).filter(polymorphic_acc.username==username).first()
     
     def verify_password(self, password, hashed_password):
         return pwd_context.verify(password, hashed_password)
@@ -196,7 +198,34 @@ class AccountManager:
         
         self.add_account(account)
         return {"message": "Registration successful"}
+    
+    def get_user_profile(self, user:Account):
+        if isinstance(user, ServiceProviderAccount):
 
+            profile_data = {
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "address": user.address,
+                "trade": user.trade
+            }
+        elif isinstance(user, BusinessAccount):
+
+            profile_data = {
+                "username": user.username,
+                "email": user.email,
+                "abn": user.abn,
+                "address": user.address
+            }
+        else:
+        # fallback or generic profile data
+            profile_data = {
+                "username": user.username,
+                "email": user.email,
+            }
+        
+        return profile_data
 
 class VerificationStrategy(ABC):
     @abstractmethod

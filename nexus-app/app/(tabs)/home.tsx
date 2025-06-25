@@ -10,7 +10,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const loadUserData = async () => {
-      // Replace these keys with how you actually store username & role
+
       const storedUsername = await SecureStore.getItemAsync('username');
       const storedRole = await SecureStore.getItemAsync('role');
 

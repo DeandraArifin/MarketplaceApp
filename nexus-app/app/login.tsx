@@ -4,6 +4,7 @@ import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import {useRouter} from 'expo-router';
+import {loginUser} from '../services/api'
 
 
 export default function LoginScreen() {
@@ -15,19 +16,11 @@ export default function LoginScreen() {
     try {
       console.log("Sending login request for username:", username);
 
-      const response = await fetch('http://192.168.8.198:8000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
-      });
 
-      console.log("Response status:", response.status);
-
-      const data = await response.json();
+      const data = await loginUser(username, password);
 
       console.log("Response data:", data);
-
-      if (response.ok) {
+      
         if (!data.access_token || !data.role) {
             Alert.alert('Login error', 'Invalid server response. Please try again.');
             return;
@@ -36,14 +29,11 @@ export default function LoginScreen() {
         await SecureStore.setItemAsync('username', username)
         await SecureStore.setItemAsync('role', data.role);
 
-        Alert.alert('Login successful', `Token: ${data.access_token}`);
-
+        // Alert.alert('Login successful', `Token: ${data.access_token}`);
         router.replace('/home')
-        // Save token securely, then navigate to app home
-      } else {
-        Alert.alert('Login failed', data.detail || 'Invalid credentials');
-      }
+
     } catch (error) {
+      console.error("Login error:", error);
       Alert.alert('Error', 'Network error or server is down');
     }
   };

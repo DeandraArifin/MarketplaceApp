@@ -1,21 +1,14 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, TextInput, Button, Text, StyleSheet, Alert, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { KeyboardAvoidingView, ScrollView, TextInput, Button, Text, StyleSheet, Alert, Platform, TouchableOpacity } from 'react-native';
 import {useRouter} from 'expo-router';
 import DropDownPicker from 'react-native-dropdown-picker';
+import { registerUser } from '../services/api';
+import { RegisterRequest, AccountType, TradeType, ErrorFields} from '../types/types';
+import { validateRegistrationForm } from '@/utils/userformvalidation';
 
-const TradeType = {
-  BARISTA: 'BARISTA',
-  BARTENDER: 'BARTENDER',
-  CHEF: 'CHEF',
-  CONCIERGE: 'CONCIERGE',
-  FOH: 'FOH',
-  MECHANIC: 'MECHANIC',
-  PLUMBER: 'PLUMBER',
-  ELECTRICIAN: 'ELECTRICIAN',
-  HVACTECH: 'HVACTECH',
-};
 
 const tradeOptions = Object.values(TradeType);
+const accountOptions = Object.values(AccountType);
 
 export default function RegisterScreen() {
   const [open, setOpen] = useState(false);
@@ -23,6 +16,13 @@ export default function RegisterScreen() {
     tradeOptions.map((tradeOption) => ({
       label: tradeOption,
       value: tradeOption,
+    }))
+  );
+
+  const [accountItems, setAccountItems] = useState(
+    accountOptions.map((accountOption) => ({
+      label: accountOption,
+      value: accountOption,
     }))
   );
 
@@ -35,45 +35,56 @@ export default function RegisterScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [trade, setTrade] = useState('');
+  const [errors, setErrors] = useState<ErrorFields>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [tradeOpen, setTradeOpen] = useState(false);
 
   const router = useRouter();
 
+  useEffect(() => {
+    const errs = validateRegistrationForm(username, email, password, accountType, abn, address, firstName, lastName, trade);
+    setErrors(errs);
+    setIsFormValid(Object.keys(errs).length === 0);
+  }, [username, email, password, accountType, abn, address, firstName, lastName, trade]);
+
   const handleRegister = async () => {
+    setSubmitted(true);
+    const validationErrors = validateRegistrationForm(username, email, password, accountType, abn, address, firstName, lastName, trade);
+    const formIsValid = Object.keys(validationErrors).length === 0;
+
+    setErrors(validationErrors);
+    setIsFormValid(formIsValid); // still useful for UI
+
+    if (!formIsValid) {
+      console.log('Form has errors. Please correct them.');
+      return;
+    }
+
     const requestBody = {
       username,
       email,
       password,
-      account_type: accountType
-    } as any;
-
-    if (accountType === 'BUSINESS') {
-      requestBody.abn = abn;
-      requestBody.address = address;
-    } else if (accountType === 'SERVICEPROVIDER') {
-      requestBody.first_name = firstName;
-      requestBody.last_name = lastName;
-      requestBody.address = address;
-      requestBody.trade = trade;
-    }
+      account_type: accountType as AccountType,
+      ...(accountType === 'BUSINESS' && { abn, address }),
+      ...(accountType === 'SERVICEPROVIDER' && {
+        first_name: firstName,
+        last_name: lastName,
+        address,
+        trade: trade as TradeType,
+      }),
+    };
 
     console.log("Register request body:", requestBody); // DEBUG
 
     try {
-      const response = await fetch('http://192.168.8.198:8000/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      });
+      const data = await registerUser(requestBody);
+      Alert.alert('Success', 'Registration successful! Please login.');
+      router.replace('/login');
 
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Success', 'Registration successful! Please login.');
-        router.replace('/login');
-      } else {
-        Alert.alert('Registration failed', data.detail || JSON.stringify(data));
-      }
     } catch (error) {
+      console.error(error);
       Alert.alert('Error', 'Network error or server is down');
     }
   };
@@ -89,50 +100,78 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text>Username</Text>
-        <TextInput style={styles.input} value={username} onChangeText={setUsername} autoCapitalize="none" />
+        <TextInput style={[styles.input, submitted && errors.username && styles.inputError]} value={username} onChangeText={setUsername} autoCapitalize="none" />
+        {submitted && errors.username && <Text style={styles.error}>{errors.username}</Text>}
+
         <Text>Email</Text>
-        <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        <TextInput style={[styles.input, submitted && errors.email && styles.inputError]} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        {submitted && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+
         <Text>Password</Text>
-        <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-        
+        <TextInput style={[styles.input, submitted && errors.password && styles.inputError]} value={password} onChangeText={setPassword} secureTextEntry />
+        {submitted && errors.password && <Text style={styles.error}>{errors.password}</Text>}
+
         <Text>Account Type</Text>
-        <Button title="Business" onPress={() => setAccountType('BUSINESS')} />
-        <Button title="Service Provider" onPress={() => setAccountType('SERVICEPROVIDER')} />
-        <Text>Selected: {accountType}</Text>
+        <DropDownPicker
+              open={accountOpen}
+              value={accountType}
+              items={accountItems}
+              setOpen={setAccountOpen}
+              setValue={setAccountType}
+              setItems={setAccountItems}
+              placeholder="Select an account type."
+              style={[styles.input, {marginBottom: open ? 100 : 20},  submitted && errors.accountType && styles.inputError]}
+        />
+        {submitted && errors.accountType && <Text style={styles.error}>{errors.accountType}</Text>}
 
         {accountType === 'BUSINESS' && (
           <>
             <Text>ABN</Text>
-            <TextInput style={styles.input} value={abn} onChangeText={setAbn} keyboardType='numeric' maxLength={11} />
+            <TextInput style={[styles.input, submitted && errors.abn && styles.inputError]} value={abn} onChangeText={setAbn} keyboardType='numeric' maxLength={11} />
+            {submitted && errors.abn && <Text style={styles.error}>{errors.abn}</Text>}
+
             <Text>Address</Text>
-            <TextInput style={styles.input} value={address} onChangeText={setAddress}/>
+            <TextInput style={[styles.input, submitted && errors.address && styles.inputError]} value={address} onChangeText={setAddress}/>
+            {submitted && errors.address && <Text style={styles.error}>{errors.address}</Text>}
           </>
         )}
 
         {accountType === 'SERVICEPROVIDER' && (
           <>
             <Text>First Name</Text>
-            <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} />
+            <TextInput style={[styles.input, submitted && errors.firstName && styles.inputError]} value={firstName} onChangeText={setFirstName} />
+            {submitted && errors.firstName && <Text style={styles.error}>{errors.firstName}</Text>}
+
             <Text>Last Name</Text>
-            <TextInput style={styles.input} value={lastName} onChangeText={setLastName} />
+            <TextInput style={[styles.input, submitted && errors.lastName && styles.inputError]} value={lastName} onChangeText={setLastName} />
+            {submitted && errors.lastName && <Text style={styles.error}>{errors.lastName}</Text>}
+
             <Text>Address</Text>
-            <TextInput style={styles.input} value={address} onChangeText={setAddress} />
+            <TextInput style={[styles.input, submitted && errors.address && styles.inputError]} value={address} onChangeText={setAddress} />
+            {submitted && errors.address && <Text style={styles.error}>{errors.address}</Text>}
+
             <Text>Trade</Text>
             <DropDownPicker
-              open={open}
+              open={tradeOpen}
               value={trade}
               items={items}
-              setOpen={setOpen}
+              setOpen={setTradeOpen}
               setValue={setTrade}
               setItems={setItems}
               placeholder="Select a trade"
-              style={{ marginBottom: open ? 180 : 10 }} // makes space for dropdown
+              style={[styles.input, {marginBottom: open ? 180 : 10},  submitted && errors.trade && styles.inputError]}// makes space for dropdown
             />
+            {submitted && errors.trade && <Text style={styles.error}>{errors.trade}</Text>}
           </>
         )}
 
-        <Button title="Register" onPress={handleRegister} />
+        <TouchableOpacity style={[styles.button]}
+          onPress={handleRegister}>
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+
         <Button title="Back to Login" onPress={() => router.replace('/login')} />
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -141,4 +180,8 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 5 },
+  button: { backgroundColor: 'blue', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 12, marginBottom: 12,},
+  buttonText: { color: '#fff', fontSize: 20, marginBottom: 12,},
+  error: { color: 'red', fontSize: 10, marginBottom: 12,},
+  inputError: { borderColor: 'red',},
 });
