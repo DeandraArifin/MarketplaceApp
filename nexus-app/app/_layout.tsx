@@ -24,7 +24,7 @@ export default function RootLayout() {
         router.replace('/login');
       } else {
         // User logged in, route to protected tabs
-        router.replace('/home');
+        router.replace('/');
       }
     }
   }, [isLoading, userToken]);

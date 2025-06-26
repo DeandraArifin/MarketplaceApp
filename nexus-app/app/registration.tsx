@@ -30,12 +30,12 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNum, setPhoneNum] = useState('');
-  const [accountType, setAccountType] = useState('');
   const [abn, setAbn] = useState('');
   const [address, setAddress] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [trade, setTrade] = useState('');
+  const [accountType, setAccountType] = useState<AccountType | "">("");
+  const [trade, setTrade] = useState<TradeType | "">("");
   const [errors, setErrors] = useState<ErrorFields>({});
   const [submitted, setSubmitted] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -43,16 +43,28 @@ export default function RegisterScreen() {
   const [tradeOpen, setTradeOpen] = useState(false);
 
   const router = useRouter();
+  const data: Partial<RegisterRequest> = {
+    username,
+    email,
+    password,
+    phone_number: phoneNum,
+    account_type: accountType as AccountType,
+    abn,
+    address,
+    first_name: firstName,
+    last_name: lastName,
+    trade: trade as TradeType,
+  };
 
   useEffect(() => {
-    const errs = validateRegistrationForm(username, email, password, phoneNum, accountType, abn, address, firstName, lastName, trade);
+    const errs = validateRegistrationForm(data);
     setErrors(errs);
     setIsFormValid(Object.keys(errs).length === 0);
   }, [username, email, password, phoneNum, accountType, abn, address, firstName, lastName, trade]);
 
   const handleRegister = async () => {
     setSubmitted(true);
-    const validationErrors = validateRegistrationForm(username, email, password, phoneNum, accountType, abn, address, firstName, lastName, trade);
+    const validationErrors = validateRegistrationForm(data);
     const formIsValid = Object.keys(validationErrors).length === 0;
 
     setErrors(validationErrors);

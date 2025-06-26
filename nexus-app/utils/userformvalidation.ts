@@ -1,19 +1,21 @@
 // utils/validation.ts
-import { AccountType, ErrorFields } from '../types/types';
+import { RegisterRequest, AccountType, ErrorFields } from '../types/types';
 
 //TODO: update to take data instead of specific parameters
-export const validateRegistrationForm = (
-  username: string,
-  email: string,
-  password: string,
-  phoneNum: string,
-  accountType: string,
-  abn: string,
-  address: string,
-  firstName: string,
-  lastName: string,
-  trade: string
-): ErrorFields => {
+export const validateRegistrationForm = (data: Partial<RegisterRequest>): ErrorFields => {
+  const {
+    username,
+    email,
+    password,
+    phone_number,
+    account_type,
+    abn,
+    address,
+    first_name,
+    last_name,
+    trade,
+  } = data;
+
   const errors: ErrorFields = {};
 
   if (!username) errors.username = 'Username is required';
@@ -32,16 +34,19 @@ export const validateRegistrationForm = (
       'Password must be at least 8 chars, with uppercase, lowercase, and a number.';
   }
 
-  if(!phoneNum) errors.phoneNum = 'Phone number is required.';
-  if (phoneNum.length != 10) errors.phoneNum = 'Phone number must be 10 digits long.'
+  if(!phone_number) {
+    errors.phoneNum = 'Phone number is required.';}
+  else if (phone_number.length !== 10){
+        errors.phoneNum = 'Phone number must be 10 digits long.';
+  }
 
-  if (!accountType) {
+  if (!account_type) {
     errors.accountType = 'Please choose an account type.';
-  } else if (!(accountType in AccountType)) {
+  } else if (!(account_type in AccountType)) {
     errors.accountType = 'Invalid account type.';
   }
 
-  if (accountType === AccountType.BUSINESS) {
+  if (account_type === AccountType.BUSINESS) {
     if (!abn) {
       errors.abn = 'Please enter your registered ABN.';
     } else if (abn.length !== 11) {
@@ -51,9 +56,9 @@ export const validateRegistrationForm = (
     if (!address) errors.address = 'Please enter your business address.';
   }
 
-  if (accountType === AccountType.SERVICEPROVIDER) {
-    if (!firstName) errors.firstName = 'Please enter your first name.';
-    if (!lastName) errors.lastName = 'Please enter your last name.';
+  if (account_type === AccountType.SERVICEPROVIDER) {
+    if (!first_name) errors.firstName = 'Please enter your first name.';
+    if (!last_name) errors.lastName = 'Please enter your last name.';
     if (!address) errors.address = 'Please enter your address.';
     if (!trade) errors.trade = 'Please select a trade.';
   }

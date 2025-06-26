@@ -19,7 +19,7 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
-  phoneNum: string;
+  phone_number: string;
   account_type: AccountType;
   abn?: string;
   address?: string;

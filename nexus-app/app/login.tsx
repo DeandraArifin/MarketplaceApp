@@ -30,7 +30,7 @@ export default function LoginScreen() {
         await saveAuthData(data.access_token, username, data.role);
 
         // Alert.alert('Login successful', `Token: ${data.access_token}`);
-        router.replace('/home')
+        router.replace('/(tabs)')
 
     } catch (error) {
       console.error("Login error:", error);
