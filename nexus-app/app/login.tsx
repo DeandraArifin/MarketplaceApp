@@ -1,8 +1,7 @@
 // LoginScreen.js
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import {useRouter} from 'expo-router';
 import {loginUser} from '../services/api'
 import { saveAuthData } from '@/services/auth';

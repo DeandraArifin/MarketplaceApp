@@ -1,9 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base
-import pymysql
+import os
+from dotenv import load_dotenv
 
-DATABASE_URL = "mysql+pymysql://root:#Sh315c00L@localhost:3306/nexus_app"
+load_dotenv()
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL, echo=True)
 

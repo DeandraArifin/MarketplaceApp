@@ -8,9 +8,13 @@ from passlib.context import CryptContext
 from jose import jwt
 from abc import ABC, abstractmethod
 from fastapi import HTTPException
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-SECRET_KEY = "3faaec484d66da6379b4dee511bac8d4"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 DEVELOPMENT_MODE = True
@@ -367,6 +371,10 @@ class JobListing(Base):
         
         application = Application(user_id=applicant.id, listing_id=self.id)
         self.applicants.append(application)
+
+    def get_time(self):
+
+        return self.datetime_required
 
 class ProductListing(Base):
     __tablename__ = 'product_listings'
