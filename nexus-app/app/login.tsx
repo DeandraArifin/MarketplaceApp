@@ -1,4 +1,3 @@
-// LoginScreen.js
 import React, { useState } from 'react';
 import { TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -55,7 +54,7 @@ export default function LoginScreen() {
         secureTextEntry 
       />
       <Button title="Login" onPress={handleLogin} />
-      <Button title="Go to Register" onPress={() => router.replace('/registration')} />
+      <Button title="Register an account" onPress={() => router.replace('/registration')} />
     </SafeAreaView>
   );
 }

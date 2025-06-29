@@ -6,7 +6,6 @@ export const colors = {
   error: '#ff3333',
   background: '#fff',
   button: '#42b1f1',
-  // ...
 };
 
 export const globalStyles = StyleSheet.create({
@@ -40,5 +39,4 @@ export const globalStyles = StyleSheet.create({
     color: 'white',
     fontSize: 20,
   },
-  // more shared styles ...
 });
