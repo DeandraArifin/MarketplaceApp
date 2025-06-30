@@ -68,7 +68,7 @@ export default function RegisterScreen() {
     const formIsValid = Object.keys(validationErrors).length === 0;
 
     setErrors(validationErrors);
-    setIsFormValid(formIsValid); // still useful for UI
+    setIsFormValid(formIsValid); 
 
     if (!formIsValid) {
       console.log('Form has errors. Please correct them.');

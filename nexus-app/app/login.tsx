@@ -32,7 +32,15 @@ export default function LoginScreen() {
 
     } catch (error) {
       console.error("Login error:", error);
-      Alert.alert('Error', 'Network error or server is down');
+      let message = 'Network or server is down';
+
+      //assigns error message to the variable message if the variable error is of type error.
+      if(error instanceof Error)
+      {
+        message = error.message;
+      }
+
+      Alert.alert('Error', message || 'Network or server is down.');
     }
   };
 
