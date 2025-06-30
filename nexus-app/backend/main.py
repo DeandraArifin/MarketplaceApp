@@ -117,3 +117,44 @@ async def profile(current_user = Depends(get_current_user), db: Session = Depend
     profile_data = account_manager.get_user_profile(current_user)
 
     return profile_data
+
+@app.post("/add_job_listing")
+async def add_job_listing(job: JobListingModel, current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    if current_user.account_type != AccountType.BUSINESS:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Only business accounts can perform this operation",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    listing_manager = ListingManager(db)
+
+    try:
+        listing_manager.create_job_listing(job.model_dump())
+        logging.warning("Incoming job listing addition request")
+        return {"message": f"Job listing created successfully!"}
+
+    except ValidationError as e:
+        logging.error(f"Validation error: {e.errors()}")
+        return JSONResponse(status_code=422, content={"detail": e.errors()})
+    
+    except Exception as e:
+        logging.exception("Unexpected error")
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+@app.get("/live_board")
+async def get_listings(current_user = Depends(get_current_user), db = Depends(get_db)):
+    
+    account_manager = AccountManager(db)
+    if not account_manager.account_type_is_valid(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Only service provider accounts can view job listings",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    listing_manager = ListingManager(db)
+
+    listings = listing_manager.get_listings(current_user)
+    return listings

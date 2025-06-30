@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, ValidationError
-from models import AccountType, TradeType
+from datetime import datetime
+from models import AccountType, TradeType, ListingType
 
 class BaseRegisterModel(BaseModel):
     username: str
@@ -17,3 +18,19 @@ class ServiceProviderRegisterModel(BaseRegisterModel):
     last_name: str
     address: str
     trade: TradeType
+
+class BaseListingModel(BaseModel):
+    type: ListingType
+    title: str
+    description: str
+    location: str
+    datetime_required: datetime
+    created_by: str
+    created_at: datetime
+
+class JobListingModel(BaseListingModel):
+    rate_per_h: int
+
+class ProductListing(BaseListingModel):
+    price: float
+    quantity: int

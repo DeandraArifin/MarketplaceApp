@@ -108,6 +108,9 @@ class AccountManager:
     
     def username_exists(self, username: str):
         return self.session.query(Account).filter_by(username=username).first() is not None
+    
+    def account_type_is_valid(self, user: Account):
+        return user.account_type == AccountType.BUSINESS or user.account_type == AccountType.SERVICEPROVIDER
 
     def add_account(self, account: Account):
 
@@ -402,6 +405,22 @@ class ListingManager():
         self.add_listing(job)
 
         return job
+    
+    def get_listings(self, user: Account):
+
+        if(user.account_type != BusinessAccount and user.account_type != ServiceProviderAccount):
+            raise HTTPException(status_code=403, detail="Invalid account type. Account doesn't have access to the live board.")
+        
+        if(user.account_type == BusinessAccount):
+
+            return self.session.query(ProductListing).all()
+        
+        else:
+            trade = user.trade
+
+            jobs = self.session.query(JobListing).join(JobListing.tags).filter(Tag.name.in_(trade)).all()
+
+            return jobs
 
 
 
