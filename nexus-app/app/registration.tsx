@@ -186,7 +186,7 @@ export default function RegisterScreen() {
 
         <TouchableOpacity style={[globalStyles.button]}
           onPress={handleRegister}>
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={globalStyles.buttonText}>Register</Text>
         </TouchableOpacity>
 
         <Button title="Back to Login" onPress={() => router.replace('/login')} />
@@ -195,8 +195,3 @@ export default function RegisterScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  button: { backgroundColor: 'blue', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 12, marginBottom: 12,},
-  buttonText: { color: '#fff', fontSize: 20, marginBottom: 12,},
-});

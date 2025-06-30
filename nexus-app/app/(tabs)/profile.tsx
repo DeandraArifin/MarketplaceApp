@@ -9,8 +9,6 @@ import TradePicker from '../../components/TradePicker' //TODO: fix and implement
 import { globalStyles } from '@/styles/global';
 
 export default function Profile() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<ErrorFields>({});
@@ -72,7 +70,11 @@ export default function Profile() {
     const formIsValid = Object.keys(validationErrors).length === 0;
     
     setErrors(validationErrors);
-    setIsFormValid(formIsValid); // still useful for UI
+    setIsFormValid(formIsValid);
+
+    if(formIsValid){
+        
+    }
   }
 
   return (
