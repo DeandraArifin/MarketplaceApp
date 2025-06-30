@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import {useRouter} from 'expo-router';
+import {getUsername, getRole} from '@/services/auth'
 
 export default function HomeScreen() {
   const [username, setUsername] = useState('');
@@ -11,8 +12,8 @@ export default function HomeScreen() {
   useEffect(() => {
     const loadUserData = async () => {
 
-      const storedUsername = await SecureStore.getItemAsync('username');
-      const storedRole = await SecureStore.getItemAsync('role');
+      const storedUsername = await getUsername();
+      const storedRole = await getRole();
 
       setUsername(storedUsername || 'User');
       setRole(storedRole || 'Unknown');

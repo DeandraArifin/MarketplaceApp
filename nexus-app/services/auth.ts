@@ -16,3 +16,11 @@ export const handleLogout = async () => {
   await SecureStore.deleteItemAsync('username');
   await SecureStore.deleteItemAsync('role');
 };
+
+export const getUsername = async () : Promise<string | null> => {
+    return await SecureStore.getItemAsync("username")
+}
+
+export const getRole = async () : Promise<string | null> => {
+    return await SecureStore.getItemAsync("role")
+}
