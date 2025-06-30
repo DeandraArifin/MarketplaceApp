@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import {useRouter} from 'expo-router';
 import {getUsername, getRole} from '@/services/auth'
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { TextInput, Button, Text, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {useRouter} from 'expo-router';
 import {loginUser} from '../services/api'
 import { saveAuthData } from '@/services/auth';
+import { globalStyles } from '@/styles/global';
 
 
 export default function LoginScreen() {
@@ -45,18 +46,18 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.titleText}>Welcome to Nexus App</Text>
+    <SafeAreaView style={globalStyles.container}>
+      <Text style={globalStyles.titleText}>Welcome to Nexus App</Text>
       <Text>Username</Text>
       <TextInput 
-        style={styles.input} 
+        style={globalStyles.input} 
         value={username} 
         onChangeText={setUsername} 
         autoCapitalize="none" 
       />
       <Text>Password</Text>
       <TextInput 
-        style={styles.input} 
+        style={globalStyles.input} 
         value={password} 
         onChangeText={setPassword} 
         secureTextEntry 
@@ -66,9 +67,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: 20, flex: 1, justifyContent: 'center' },
-  input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 5 },
-  titleText: {fontWeight: 'bold', fontSize: 24, color: '#007AFF'},
-});

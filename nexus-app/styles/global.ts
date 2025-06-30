@@ -26,7 +26,8 @@ export const globalStyles = StyleSheet.create({
   },
   errorText: {
     color: colors.error,
-    fontSize: 12,
+    fontSize: 10,
+    marginBottom: 12
   },
   button: {
     backgroundColor: colors.button,
@@ -39,4 +40,17 @@ export const globalStyles = StyleSheet.create({
     color: 'white',
     fontSize: 20,
   },
+
+  inputError: { 
+    borderColor: 'red',
+  },
+
+  titleText: {
+    fontWeight: 'bold', 
+    fontSize: 24, 
+    color: '#007AFF',
+    marginBottom: 40,
+    alignSelf: 'center',
+  },
+
 });

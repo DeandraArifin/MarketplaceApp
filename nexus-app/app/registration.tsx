@@ -5,6 +5,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { registerUser } from '../services/api';
 import { RegisterRequest, AccountType, TradeType, ErrorFields} from '../types/types';
 import { validateRegistrationForm } from '@/utils/userformvalidation';
+import { globalStyles } from '@/styles/global';
 
 
 const tradeOptions = Object.values(TradeType);
@@ -110,24 +111,24 @@ export default function RegisterScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0} // adjust if you have header/navbar
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={globalStyles.container}
         keyboardShouldPersistTaps="handled"
       >
         <Text>Username</Text>
-        <TextInput style={[styles.input, submitted && errors.username && styles.inputError]} value={username} onChangeText={setUsername} autoCapitalize="none" />
-        {submitted && errors.username && <Text style={styles.error}>{errors.username}</Text>}
+        <TextInput style={[globalStyles.input, submitted && errors.username && globalStyles.inputError]} value={username} onChangeText={setUsername} autoCapitalize="none" />
+        {submitted && errors.username && <Text style={globalStyles.errorText}>{errors.username}</Text>}
 
         <Text>Email</Text>
-        <TextInput style={[styles.input, submitted && errors.email && styles.inputError]} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-        {submitted && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+        <TextInput style={[globalStyles.input, submitted && errors.email && globalStyles.inputError]} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        {submitted && errors.email && <Text style={globalStyles.errorText}>{errors.email}</Text>}
 
         <Text>Phone Number</Text>
-        <TextInput style={[styles.input, submitted && errors.phoneNum && styles.inputError]} value={phoneNum} onChangeText={setPhoneNum}></TextInput>
-        {submitted && errors.phoneNum && <Text style={styles.error}>{errors.phoneNum}</Text>}
+        <TextInput style={[globalStyles.input, submitted && errors.phoneNum && globalStyles.inputError]} value={phoneNum} onChangeText={setPhoneNum}></TextInput>
+        {submitted && errors.phoneNum && <Text style={globalStyles.errorText}>{errors.phoneNum}</Text>}
 
         <Text>Password</Text>
-        <TextInput style={[styles.input, submitted && errors.password && styles.inputError]} value={password} onChangeText={setPassword} secureTextEntry />
-        {submitted && errors.password && <Text style={styles.error}>{errors.password}</Text>}
+        <TextInput style={[globalStyles.input, submitted && errors.password && globalStyles.inputError]} value={password} onChangeText={setPassword} secureTextEntry />
+        {submitted && errors.password && <Text style={globalStyles.errorText}>{errors.password}</Text>}
 
         <Text>Account Type</Text>
         <DropDownPicker
@@ -138,35 +139,35 @@ export default function RegisterScreen() {
               setValue={setAccountType}
               setItems={setAccountItems}
               placeholder="Select an account type."
-              style={[styles.input, {marginBottom: open ? 100 : 20},  submitted && errors.accountType && styles.inputError]}
+              style={[globalStyles.input, {marginBottom: open ? 100 : 20},  submitted && errors.accountType && globalStyles.inputError]}
         />
-        {submitted && errors.accountType && <Text style={styles.error}>{errors.accountType}</Text>}
+        {submitted && errors.accountType && <Text style={globalStyles.errorText}>{errors.accountType}</Text>}
 
         {accountType === 'BUSINESS' && (
           <>
             <Text>ABN</Text>
-            <TextInput style={[styles.input, submitted && errors.abn && styles.inputError]} value={abn} onChangeText={setAbn} keyboardType='numeric' maxLength={11} />
-            {submitted && errors.abn && <Text style={styles.error}>{errors.abn}</Text>}
+            <TextInput style={[globalStyles.input, submitted && errors.abn && globalStyles.inputError]} value={abn} onChangeText={setAbn} keyboardType='numeric' maxLength={11} />
+            {submitted && errors.abn && <Text style={globalStyles.errorText}>{errors.abn}</Text>}
 
             <Text>Address</Text>
-            <TextInput style={[styles.input, submitted && errors.address && styles.inputError]} value={address} onChangeText={setAddress}/>
-            {submitted && errors.address && <Text style={styles.error}>{errors.address}</Text>}
+            <TextInput style={[globalStyles.input, submitted && errors.address && globalStyles.inputError]} value={address} onChangeText={setAddress}/>
+            {submitted && errors.address && <Text style={globalStyles.errorText}>{errors.address}</Text>}
           </>
         )}
 
         {accountType === 'SERVICEPROVIDER' && (
           <>
             <Text>First Name</Text>
-            <TextInput style={[styles.input, submitted && errors.firstName && styles.inputError]} value={firstName} onChangeText={setFirstName} />
-            {submitted && errors.firstName && <Text style={styles.error}>{errors.firstName}</Text>}
+            <TextInput style={[globalStyles.input, submitted && errors.firstName && globalStyles.inputError]} value={firstName} onChangeText={setFirstName} />
+            {submitted && errors.firstName && <Text style={globalStyles.errorText}>{errors.firstName}</Text>}
 
             <Text>Last Name</Text>
-            <TextInput style={[styles.input, submitted && errors.lastName && styles.inputError]} value={lastName} onChangeText={setLastName} />
-            {submitted && errors.lastName && <Text style={styles.error}>{errors.lastName}</Text>}
+            <TextInput style={[globalStyles.input, submitted && errors.lastName && globalStyles.inputError]} value={lastName} onChangeText={setLastName} />
+            {submitted && errors.lastName && <Text style={globalStyles.errorText}>{errors.lastName}</Text>}
 
             <Text>Address</Text>
-            <TextInput style={[styles.input, submitted && errors.address && styles.inputError]} value={address} onChangeText={setAddress} />
-            {submitted && errors.address && <Text style={styles.error}>{errors.address}</Text>}
+            <TextInput style={[globalStyles.input, submitted && errors.address && globalStyles.inputError]} value={address} onChangeText={setAddress} />
+            {submitted && errors.address && <Text style={globalStyles.errorText}>{errors.address}</Text>}
 
             <Text>Trade</Text>
             <DropDownPicker
@@ -177,13 +178,13 @@ export default function RegisterScreen() {
               setValue={setTrade}
               setItems={setItems}
               placeholder="Select a trade"
-              style={[styles.input, {marginBottom: open ? 180 : 10},  submitted && errors.trade && styles.inputError]}// makes space for dropdown
+              style={[globalStyles.input, {marginBottom: open ? 180 : 10},  submitted && errors.trade && globalStyles.inputError]}// makes space for dropdown
             />
-            {submitted && errors.trade && <Text style={styles.error}>{errors.trade}</Text>}
+            {submitted && errors.trade && <Text style={globalStyles.errorText}>{errors.trade}</Text>}
           </>
         )}
 
-        <TouchableOpacity style={[styles.button]}
+        <TouchableOpacity style={[globalStyles.button]}
           onPress={handleRegister}>
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
@@ -196,10 +197,6 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: 'center', padding: 20 },
-  input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 5 },
   button: { backgroundColor: 'blue', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 12, marginBottom: 12,},
   buttonText: { color: '#fff', fontSize: 20, marginBottom: 12,},
-  error: { color: 'red', fontSize: 10, marginBottom: 12,},
-  inputError: { borderColor: 'red',},
 });
